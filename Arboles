@@ -119,12 +119,25 @@ def carpeta_con_mas_carpetas(carpeta):
     buscar_carpeta(carpeta)
     return carpeta_con_max_carpetas.nombre if carpeta_con_max_carpetas else None
 
+def ruta_archivo_mas_pesado(carpeta, ruta_actual="raiz", archivo_mas_pesado=None, ruta_archivo_pesado=""):
+    for elemento in carpeta.elementos:
+        if elemento:
+            if isinstance(elemento, Carpeta):
+                ruta_actual_temp = ruta_actual + "/" + elemento.nombre
+                archivo_mas_pesado, ruta_archivo_pesado = ruta_archivo_mas_pesado(elemento, ruta_actual_temp, archivo_mas_pesado, ruta_archivo_pesado)
+            else:
+                if not archivo_mas_pesado or elemento.peso > archivo_mas_pesado.peso:
+                    archivo_mas_pesado = elemento
+                    ruta_archivo_pesado = ruta_actual + "/" + elemento.nombre + "." + elemento.extension
+    return archivo_mas_pesado, ruta_archivo_pesado
+
+
 def main():
     carpeta_raiz = Carpeta("raiz")
 
     while True:
         print("Por favor, seleccione una opción:", "\n", "1. Agregar carpeta", "\n", "2. Agregar archivo", "\n",
-              "3. Modificar carpeta", "\n", "4. Modificar archivo", "\n", "5. Buscar carpeta con más carpetas", "\n", "6. Salir")
+              "3. Modificar carpeta", "\n", "4. Modificar archivo", "\n", "5. Buscar carpeta con más carpetas", "\n", "6. Ruta archivo mas pesado", "\n", "7. Salir")
         opcion = input("Seleccione una opción: ")
 
         try:
@@ -164,8 +177,13 @@ def main():
                     print("La carpeta con más carpetas es:", carpeta_con_mas_carpetas_resultado)
                 else:
                     print("No se encontró ninguna carpeta con carpetas.")
-
+            
             elif opcion == "6":
+                archivo_pesado, ruta_pesado = ruta_archivo_mas_pesado(carpeta_raiz)
+                print("El archivo más pesado es:", archivo_pesado.nombre + "." + archivo_pesado.extension, "con un peso de", archivo_pesado.peso)
+                print("La ruta del archivo más pesado es:", ruta_pesado)
+
+            elif opcion == "7":
                 print("Terminando...")
                 time.sleep(2)
                 break
