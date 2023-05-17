@@ -1,29 +1,36 @@
+import time
+
+
 class ElementoNoEncontrado(Exception):
     pass
+
 
 class EspacioNoDisponible(Exception):
     pass
 
+
 class NombreInvalido(Exception):
     pass
+
 
 class EntradaInvalida(Exception):
     pass
 
-class Elemento:
+
+class Carpeta:
     def __init__(self, nombre):
         self.nombre = nombre
-
-class Carpeta(Elemento):
-    def __init__(self, nombre):
-        super().__init__(nombre)
         self.elementos = [None, None, None, None]
+        self.simbolo = "📁 "
 
-class Archivo(Elemento):
+
+class Archivo:
     def __init__(self, nombre, extension, peso):
-        super().__init__(nombre)
+        self.nombre = nombre
         self.extension = extension
         self.peso = peso
+        self.simbolo = "📄 "
+
 
 def buscar_carpeta(carpeta, nombre):
     if carpeta.nombre == nombre:
@@ -34,6 +41,7 @@ def buscar_carpeta(carpeta, nombre):
             if resultado:
                 return resultado
     return None
+
 
 def agregar_carpeta(carpeta_madre, nombre_nueva_carpeta):
     if not carpeta_madre:
@@ -47,11 +55,12 @@ def agregar_carpeta(carpeta_madre, nombre_nueva_carpeta):
             return
     raise EspacioNoDisponible("No hay espacio disponible en la carpeta madre.")
 
+
 def agregar_archivo(carpeta_madre, nombre_archivo, extension, peso):
     if not carpeta_madre:
         raise ElementoNoEncontrado("Carpeta madre no encontrada.")
     for elemento in carpeta_madre.elementos:
-        if elemento and isinstance(elemento, Archivo) and elemento.nombre == nombre_archivo and elemento.extension == extension:
+        if elemento and isinstance(elemento, Archivo) and elemento.nombre == nombre_archivo:
             raise NombreInvalido("Ya existe un archivo con el mismo nombre y extensión.")
     for i, elemento in enumerate(carpeta_madre.elementos):
         if not elemento:
@@ -59,11 +68,13 @@ def agregar_archivo(carpeta_madre, nombre_archivo, extension, peso):
             return
     raise EspacioNoDisponible("No hay espacio disponible en la carpeta madre.")
 
+
 def modificar_carpeta(carpeta_raiz, nombre_actual, nuevo_nombre):
     carpeta = buscar_carpeta(carpeta_raiz, nombre_actual)
     if not carpeta:
         raise ElementoNoEncontrado("Carpeta no encontrada.")
     carpeta.nombre = nuevo_nombre
+
 
 def modificar_archivo(carpeta_raiz, nombre_carpeta, nombre_archivo, nueva_extension, nuevo_peso):
     carpeta = buscar_carpeta(carpeta_raiz, nombre_carpeta)
@@ -76,28 +87,44 @@ def modificar_archivo(carpeta_raiz, nombre_carpeta, nombre_archivo, nueva_extens
             elemento.peso = nuevo_peso
             archivo_modificado = True
             break
-    if not archivo_modificado:
-        raise ElementoNoEncontrado("Archivo no encontrado.")
+        else:
+            raise ElementoNoEncontrado("Archivo no encontrado.")
+
 
 def imprimir_arbol(carpeta, nivel=0):
-    print("  " * nivel + carpeta.nombre)
+    print("  " * nivel + carpeta.nombre + carpeta.simbolo)
     for elemento in carpeta.elementos:
         if elemento:
             if isinstance(elemento, Carpeta):
                 imprimir_arbol(elemento, nivel + 1)
             else:
-                print("  " * (nivel + 1) + elemento.nombre + "." + elemento.extension + " (" + str(elemento.peso) + ")")
+                print("  " * (nivel + 1) + elemento.nombre + "." + "📄 " + elemento.extension + " (" + str(
+                    elemento.peso) + ")")
+
+def carpeta_con_mas_carpetas(carpeta):
+    max_cant_carpetas = 0
+    carpeta_con_max_carpetas = None
+
+    def buscar_carpeta(carpeta_actual):
+        nonlocal max_cant_carpetas, carpeta_con_max_carpetas
+        cant_carpetas = sum(1 for e in carpeta_actual.elementos if isinstance(e, Carpeta))
+        if cant_carpetas > max_cant_carpetas:
+            max_cant_carpetas = cant_carpetas
+            carpeta_con_max_carpetas = carpeta_actual
+
+        for elemento in carpeta_actual.elementos:
+            if isinstance(elemento, Carpeta):
+                buscar_carpeta(elemento)
+
+    buscar_carpeta(carpeta)
+    return carpeta_con_max_carpetas.nombre if carpeta_con_max_carpetas else None
 
 def main():
     carpeta_raiz = Carpeta("raiz")
 
     while True:
-        print("\nMenú:")
-        print("(1) Agregar carpeta")
-        print("(2) Agregar archivo")
-        print("(3) Modificar carpeta")
-        print("(4) Modificar archivo")
-        print("(5) Salir")
+        print("Por favor, seleccione una opción:", "\n", "1. Agregar carpeta", "\n", "2. Agregar archivo", "\n",
+              "3. Modificar carpeta", "\n", "4. Modificar archivo", "\n", "5. Buscar carpeta con más carpetas", "\n", "6. Salir")
         opcion = input("Seleccione una opción: ")
 
         try:
@@ -106,6 +133,7 @@ def main():
                 nombre_nueva_carpeta = input("Ingrese el nombre de la nueva carpeta: ")
                 agregar_carpeta(buscar_carpeta(carpeta_raiz, nombre_carpeta_madre), nombre_nueva_carpeta)
                 print("Carpeta agregada.")
+
             elif opcion == "2":
                 nombre_carpeta_madre = input("Ingrese el nombre de la carpeta madre: ")
                 entrada = input("Ingrese el nombre del archivo, extensión y peso (ejemplo: archivo.txt 56): ")
@@ -115,11 +143,13 @@ def main():
                 peso = int(peso)
                 agregar_archivo(buscar_carpeta(carpeta_raiz, nombre_carpeta_madre), nombre_archivo, extension, peso)
                 print("Archivo agregado.")
+
             elif opcion == "3":
                 nombre_actual = input("Ingrese el nombre actual de la carpeta: ")
                 nuevo_nombre = input("Ingrese el nuevo nombre de la carpeta: ")
                 modificar_carpeta(carpeta_raiz, nombre_actual, nuevo_nombre)
                 print("Carpeta modificada.")
+
             elif opcion == "4":
                 nombre_carpeta = input("Ingrese el nombre de la carpeta madre: ")
                 nombre_archivo = input("Ingrese el nombre actual del archivo: ")
@@ -127,15 +157,29 @@ def main():
                 nuevo_peso = int(input("Ingrese el nuevo peso del archivo: "))
                 modificar_archivo(carpeta_raiz, nombre_carpeta, nombre_archivo, nueva_extension, nuevo_peso)
                 print("Archivo modificado.")
+
             elif opcion == "5":
+                carpeta_con_mas_carpetas_resultado = carpeta_con_mas_carpetas(carpeta_raiz)
+                if carpeta_con_mas_carpetas_resultado:
+                    print("La carpeta con más carpetas es:", carpeta_con_mas_carpetas_resultado)
+                else:
+                    print("No se encontró ninguna carpeta con carpetas.")
+
+            elif opcion == "6":
+                print("Terminando...")
+                time.sleep(2)
                 break
+
             else:
                 print("Opción no válida.")
+
         except (ElementoNoEncontrado, EspacioNoDisponible, NombreInvalido, EntradaInvalida) as e:
             print(str(e))
 
         print("\nÁrbol de carpetas y archivos:")
         imprimir_arbol(carpeta_raiz)
+
+
 
 if __name__ == "__main__":
     main()
