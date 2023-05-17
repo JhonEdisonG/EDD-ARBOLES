@@ -32,12 +32,12 @@ class Archivo:
         self.simbolo = "📄 "
 
 
-def buscar_carpeta(carpeta, nombre):
+def buscar(carpeta, nombre):
     if carpeta.nombre == nombre:
         return carpeta
     for elemento in carpeta.elementos:
         if elemento and isinstance(elemento, Carpeta):
-            resultado = buscar_carpeta(elemento, nombre)
+            resultado = buscar(elemento, nombre)
             if resultado:
                 return resultado
     return None
@@ -70,14 +70,14 @@ def agregar_archivo(carpeta_madre, nombre_archivo, extension, peso):
 
 
 def modificar_carpeta(carpeta_raiz, nombre_actual, nuevo_nombre):
-    carpeta = buscar_carpeta(carpeta_raiz, nombre_actual)
+    carpeta = buscar(carpeta_raiz, nombre_actual)
     if not carpeta:
         raise ElementoNoEncontrado("Carpeta no encontrada.")
     carpeta.nombre = nuevo_nombre
 
 
 def modificar_archivo(carpeta_raiz, nombre_carpeta, nombre_archivo, nueva_extension, nuevo_peso):
-    carpeta = buscar_carpeta(carpeta_raiz, nombre_carpeta)
+    carpeta = buscar(carpeta_raiz, nombre_carpeta)
     if not carpeta:
         raise ElementoNoEncontrado("Carpeta madre no encontrada.")
     archivo_modificado = False
@@ -144,7 +144,7 @@ def main():
             if opcion == "1":
                 nombre_carpeta_madre = input("Ingrese el nombre de la carpeta madre: ")
                 nombre_nueva_carpeta = input("Ingrese el nombre de la nueva carpeta: ")
-                agregar_carpeta(buscar_carpeta(carpeta_raiz, nombre_carpeta_madre), nombre_nueva_carpeta)
+                agregar_carpeta(buscar(carpeta_raiz, nombre_carpeta_madre), nombre_nueva_carpeta)
                 print("Carpeta agregada.")
 
             elif opcion == "2":
@@ -154,7 +154,7 @@ def main():
                     raise EntradaInvalida("Por favor, ingrese el nombre del archivo, extensión y peso correctamente.")
                 nombre_archivo, extension, peso = entrada.split()
                 peso = int(peso)
-                agregar_archivo(buscar_carpeta(carpeta_raiz, nombre_carpeta_madre), nombre_archivo, extension, peso)
+                agregar_archivo(buscar(carpeta_raiz, nombre_carpeta_madre), nombre_archivo, extension, peso)
                 print("Archivo agregado.")
 
             elif opcion == "3":
